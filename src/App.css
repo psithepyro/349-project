@@ -37,9 +37,10 @@
   }
 }
 
-header { /* Header*/
+header {
+  /* Header*/
   top: 0;
-  left:0;
+  left: 0;
   margin: 0;
   padding: 0;
   z-index: 99;
@@ -52,12 +53,12 @@ header { /* Header*/
   text-align: center;
   width: 100%;
   height: auto;
-  position:fixed;
+  position: fixed;
   color: white;
 }
 
-a{
-  text-decoration:none;
+a {
+  text-decoration: none;
   font-weight: normal;
   font-family: Arial, sans-serif;
   text-align: center;
@@ -79,11 +80,10 @@ div.fan-cards {
   flex-grow: 0;
 }
 
-p{
+p {
   color: grey;
   font-size: 18px;
 }
-
 
 div.fan-cards a {
   text-decoration: none;
@@ -189,4 +189,15 @@ div.fan-cards.add-card:hover {
 
 .modal-content button:hover {
   opacity: 0.9;
+}
+
+.modal-content select {
+  display: block;
+  width: 95%;
+  margin: 10px auto;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  font-size: 13px;
 }
