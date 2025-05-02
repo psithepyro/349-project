@@ -78,6 +78,7 @@ div.fan-cards {
   padding: 15px 15px 15px 15px;
   flex-shrink: 0;
   flex-grow: 0;
+  position: relative;
 }
 
 p {
@@ -209,4 +210,25 @@ div.fan-cards.add-card:hover {
   border-radius: 5px;
   padding: 5px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* hide this element in capture */
+.no-print {
+  display: block;
+}
+
+/* download icon */
+.download-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  cursor: pointer;
+  color: black;
+  background-color: white;
+  border-radius: 50%;
+  padding: 6px;
+}
+
+.download-icon:hover {
+  transform: scale(1.1);
 }

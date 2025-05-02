@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { FaPlus } from "react-icons/fa";
+import { FaDownload } from "react-icons/fa";
 import defaultImage from "./images/default-picture.jpg";
+import { useRef } from "react";
+import html2canvas from "html2canvas";
 
 function App() {
   const [newCard, setNewCard] = useState({
@@ -10,9 +13,36 @@ function App() {
     gender: "",
     favoriteTeam: "",
     favoriteTeamLogo: "",
+    favoritePlayerLogo: "",
     favoritePlayer: "",
     customImage: "", // New property for custom image
   });
+
+  const cardRefs = useRef([]); //store reference to each fan card to download
+
+  //download card as an image with html2canvas
+  const downloadCard = async (element, name) => {
+    if (!element) return;
+
+    //Hide all .noprint elements
+    const hiddenElements = element.querySelectorAll(".no-print");
+    hiddenElements.forEach((el) => (el.style.display = "none"));
+
+    // capture card as an image
+    const canvas = await html2canvas(element, {
+      useCORS: true, //allows external images for logos
+      scale: 2, //resolution
+    });
+
+    //make hidden elements visible again
+    hiddenElements.forEach((el) => (el.style.display = ""));
+
+    //create download link and trigger it
+    const link = document.createElement("a");
+    link.download = `${name}-fan-card.png`; //file name
+    link.href = canvas.toDataURL(); //convert canvas to PNG
+    link.click(); //trigger click to download
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [teams, setTeams] = useState([]);
@@ -21,7 +51,12 @@ function App() {
   const [teamSearchTerm, setTeamSearchTerm] = useState(""); // State for team search term
   const [playerSearchTerm, setPlayerSearchTerm] = useState(""); // State for player search term
   const [selectedTeamId, setSelectedTeamId] = useState(null); //Store the ID of the selected team to fetch its players
-  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, image: "" });
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    image: "",
+  });
 
   useEffect(() => {
     let url = "";
@@ -123,6 +158,7 @@ function App() {
       favoriteTeam: "",
       favoriteTeamLogo: "",
       favoritePlayer: "",
+      favoritePlayerPhoto: "",
       customImage: "", // Reset custom image
     });
     setTeamSearchTerm(""); // Reset the team search term
@@ -134,7 +170,7 @@ function App() {
   const handleTooltip = (e, type) => {
     const option = e.target.options[e.target.selectedIndex];
     const image = option.getAttribute("data-image");
-  
+
     if (image) {
       setTooltip({
         visible: true,
@@ -144,7 +180,7 @@ function App() {
       });
     }
   };
-  
+
   const hideTooltip = () => {
     setTooltip({ visible: false, x: 0, y: 0, image: "" });
   };
@@ -154,7 +190,11 @@ function App() {
       <header>Soccer Fan Cards</header>
       <div className="card-container">
         {fanCards.map((card, index) => (
-          <div className="fan-cards" key={index}>
+          <div
+            className="fan-cards"
+            key={index}
+            ref={(el) => (cardRefs.current[index] = el)} //assign reference
+          >
             <img
               src={card.customImage || defaultImage} // Use custom image if available
               alt="fan-card"
@@ -163,34 +203,31 @@ function App() {
             <h1>{card.name}</h1>
             <p>Age: {card.age}</p>
             <p>Gender: {card.gender}</p>
-            <p
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-              }}
-            >
-              Favorite Team:
+            <p style={{ textAlign: "center" }}>
+              Favorite Team: {card.favoriteTeam}
               {card.favoriteTeamLogo && (
-                <img
-                  src={card.favoriteTeamLogo}
-                  alt={card.favoriteTeam}
-                  style={{
-                    width: "60px", // Increased size for the team logo
-                    height: "60px",
-                    objectFit: "contain",
-                    borderRadius: "5px",
-                  }}
-                />
+                <div style={{ marginTop: "10px" }}>
+                  <img
+                    src={card.favoriteTeamLogo}
+                    alt={card.favoriteTeam}
+                    crossOrigin="anonymous"
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                      marginTop: "5px",
+                    }}
+                  />
+                </div>
               )}
-              {card.favoriteTeam}
             </p>
             <p>Favorite Player: {card.favoritePlayer}</p>
             {card.favoritePlayer && (
               <img
                 src={card.favoritePlayerPhoto} // Add the player's photo
                 alt={card.favoritePlayer}
+                crossOrigin="anonymous"
                 style={{
                   width: "80px", // Set size for the player's photo
                   height: "80px",
@@ -200,6 +237,14 @@ function App() {
                 }}
               />
             )}
+            {/*Download button icon*/}
+            <button
+              className="no-print download-icon"
+              style={{ marginTop: "10px" }}
+              onClick={() => downloadCard(cardRefs.current[index], card.name)}
+            >
+              <FaDownload size={20} />
+            </button>
           </div>
         ))}
 
@@ -285,12 +330,24 @@ function App() {
             <select
               name="favoritePlayer"
               value={newCard.favoritePlayer}
-              onChange={handleInputChange}
+              onChange={(e) => {
+                const selectedPlayerName = e.target.value;
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                const selectedPlayerPhoto =
+                  selectedOption.getAttribute("data-image");
+                setNewCard({
+                  ...newCard,
+                  favoritePlayer: selectedPlayerName,
+                  favoritePlayerPhoto: selectedPlayerPhoto, // Save player photo
+                });
+              }}
               onMouseMove={(e) => handleTooltip(e, "player")}
               onMouseLeave={hideTooltip}
             >
               <option value="">Select Favorite Player</option>
-              {players.length === 0 && <option disabled>No Players found</option>}
+              {players.length === 0 && (
+                <option disabled>No Players found</option>
+              )}
               {players.map((player) => (
                 <option
                   key={player.player.id}
@@ -303,11 +360,7 @@ function App() {
             </select>
 
             {/* New file input for custom image */}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
 
             <div className="button-group">
               <button onClick={handleAddCard}>Add Card</button>
