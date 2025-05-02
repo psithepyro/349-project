@@ -201,3 +201,12 @@ div.fan-cards.add-card:hover {
   background-color: #f9f9f9;
   font-size: 13px;
 }
+
+.tooltip {
+  display: inline-block;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

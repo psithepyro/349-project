@@ -11,6 +11,7 @@ function App() {
     favoriteTeam: "",
     favoriteTeamLogo: "",
     favoritePlayer: "",
+    customImage: "", // New property for custom image
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,6 +21,7 @@ function App() {
   const [teamSearchTerm, setTeamSearchTerm] = useState(""); // State for team search term
   const [playerSearchTerm, setPlayerSearchTerm] = useState(""); // State for player search term
   const [selectedTeamId, setSelectedTeamId] = useState(null); //Store the ID of the selected team to fetch its players
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, image: "" });
 
   useEffect(() => {
     let url = "";
@@ -86,6 +88,32 @@ function App() {
     setPlayerSearchTerm(e.target.value); // Update the player search term
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ["image/jpeg", "image/png", "image/gif"];
+      if (!validTypes.includes(file.type)) {
+        alert("Invalid file type. Please upload a JPEG, PNG, or GIF image.");
+        return;
+      }
+
+      // Validate file size (e.g., max 2MB)
+      const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSizeInBytes) {
+        alert("File size exceeds 2MB. Please upload a smaller image.");
+        return;
+      }
+
+      // Read and set the image
+      const reader = new FileReader();
+      reader.onload = () => {
+        setNewCard({ ...newCard, customImage: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddCard = () => {
     setFanCards([...fanCards, newCard]); // Add the new card to the fanCards array
     setNewCard({
@@ -93,7 +121,9 @@ function App() {
       age: "",
       gender: "",
       favoriteTeam: "",
+      favoriteTeamLogo: "",
       favoritePlayer: "",
+      customImage: "", // Reset custom image
     });
     setTeamSearchTerm(""); // Reset the team search term
     setSelectedTeamId(null);
@@ -101,14 +131,35 @@ function App() {
     setIsModalOpen(false); // Close the modal
   };
 
+  const handleTooltip = (e, type) => {
+    const option = e.target.options[e.target.selectedIndex];
+    const image = option.getAttribute("data-image");
+  
+    if (image) {
+      setTooltip({
+        visible: true,
+        x: e.pageX + 10, // Position tooltip slightly to the right of the cursor
+        y: e.pageY + 10, // Position tooltip slightly below the cursor
+        image,
+      });
+    }
+  };
+  
+  const hideTooltip = () => {
+    setTooltip({ visible: false, x: 0, y: 0, image: "" });
+  };
+
   return (
     <>
       <header>Soccer Fan Cards</header>
       <div className="card-container">
-        {/* Render existing fan cards */}
         {fanCards.map((card, index) => (
           <div className="fan-cards" key={index}>
-            <img src={defaultImage} alt="fan-card" style={{ width: "100%" }} />
+            <img
+              src={card.customImage || defaultImage} // Use custom image if available
+              alt="fan-card"
+              style={{ width: "100%" }}
+            />
             <h1>{card.name}</h1>
             <p>Age: {card.age}</p>
             <p>Gender: {card.gender}</p>
@@ -117,27 +168,38 @@ function App() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "5px",
+                gap: "10px",
               }}
             >
               Favorite Team:
-              {/* Logo and Fav tea*/}
               {card.favoriteTeamLogo && (
                 <img
                   src={card.favoriteTeamLogo}
                   alt={card.favoriteTeam}
                   style={{
-                    width: "30px",
-                    height: "30px",
+                    width: "60px", // Increased size for the team logo
+                    height: "60px",
                     objectFit: "contain",
-                    paddingBottom: "14px",
+                    borderRadius: "5px",
                   }}
                 />
               )}
               {card.favoriteTeam}
             </p>
-
             <p>Favorite Player: {card.favoritePlayer}</p>
+            {card.favoritePlayer && (
+              <img
+                src={card.favoritePlayerPhoto} // Add the player's photo
+                alt={card.favoritePlayer}
+                style={{
+                  width: "80px", // Set size for the player's photo
+                  height: "80px",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                  marginTop: "10px",
+                }}
+              />
+            )}
           </div>
         ))}
 
@@ -194,15 +256,21 @@ function App() {
                   setNewCard({
                     ...newCard,
                     favoriteTeam: selectedTeam.team.name,
-                    favoriteTeamLogo: selectedTeam.team.logo, //added logo
+                    favoriteTeamLogo: selectedTeam.team.logo, // Add logo to the card
                   });
                   setSelectedTeamId(selectedTeam.team.id);
                 }
               }}
+              onMouseMove={(e) => handleTooltip(e, "team")}
+              onMouseLeave={hideTooltip}
             >
               <option value="">Select Favorite Team</option>
               {teams.map((team) => (
-                <option key={team.team.id} value={team.team.name}>
+                <option
+                  key={team.team.id}
+                  value={team.team.name}
+                  data-image={team.team.logo} // Store the team logo URL
+                >
                   {team.team.name}
                 </option>
               ))}
@@ -218,17 +286,29 @@ function App() {
               name="favoritePlayer"
               value={newCard.favoritePlayer}
               onChange={handleInputChange}
+              onMouseMove={(e) => handleTooltip(e, "player")}
+              onMouseLeave={hideTooltip}
             >
               <option value="">Select Favorite Player</option>
-              {players.length === 0 && (
-                <option disabled> No Players found</option>
-              )}
+              {players.length === 0 && <option disabled>No Players found</option>}
               {players.map((player) => (
-                <option key={player.player.id} value={player.player.name}>
+                <option
+                  key={player.player.id}
+                  value={player.player.name}
+                  data-image={player.player.photo} // Store the player photo URL
+                >
                   {player.player.name}
                 </option>
               ))}
             </select>
+
+            {/* New file input for custom image */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+
             <div className="button-group">
               <button onClick={handleAddCard}>Add Card</button>
               <button
@@ -239,6 +319,32 @@ function App() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      <div id="tooltip" style={{ display: "none", position: "absolute" }}></div>
+      {tooltip.visible && (
+        <div
+          className="tooltip"
+          style={{
+            position: "absolute",
+            top: tooltip.y,
+            left: tooltip.x,
+            zIndex: 1000,
+            pointerEvents: "none",
+          }}
+        >
+          <img
+            src={tooltip.image}
+            alt="Preview"
+            style={{
+              width: "100px",
+              height: "100px",
+              objectFit: "contain",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+              backgroundColor: "#fff",
+            }}
+          />
         </div>
       )}
     </>
