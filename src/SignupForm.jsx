@@ -15,7 +15,7 @@ export default function SignupForm() {
   const handleSignup = async (e) => {
     e.preventDefault();
     const res = await fetch(
-      "https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user", //replace key
+      "https://68159d6132debfe95dbbf7a5.mockapi.io/SFC/349/API/User",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
