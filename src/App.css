@@ -107,11 +107,6 @@ div.card-container {
   flex-wrap: wrap;
 }
 
-div.fan-cards:hover {
-  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
-  transform: scale(1.05);
-}
-
 div.fan-cards img {
   border-radius: 5px;
   width: 100%;
@@ -231,4 +226,22 @@ div.fan-cards.add-card:hover {
 
 .download-icon:hover {
   transform: scale(1.1);
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  color: white;
+  text-align: center;
+  padding: 5px;
+}
+
+footer p {
+  color: white;
+  text-decoration: none;
+  font-weight: normal;
+  font-family: Arial, sans-serif;
+  text-align: right;
 }

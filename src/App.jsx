@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
-import { FaPlus } from "react-icons/fa";
-import { FaDownload } from "react-icons/fa";
+import { FaPlus, FaDownload, FaEdit, FaTrash } from "react-icons/fa";
 import defaultImage from "./images/default-picture.jpg";
-import { useRef } from "react";
 import html2canvas from "html2canvas";
 
 function App() {
   const [newCard, setNewCard] = useState({
     name: "",
     age: "",
-    gender: "",
+    location: "", // Replace gender with location
     favoriteTeam: "",
     favoriteTeamLogo: "",
-    favoritePlayerLogo: "",
+    favoriteTeamId: "", 
     favoritePlayer: "",
-    customImage: "", // New property for custom image
+    favoritePlayerPhoto: "",
+    customImage: "",
   });
 
+  const [editingIndex, setEditingIndex] = useState(null); // Track the index of the card being edited
   const cardRefs = useRef([]); //store reference to each fan card to download
 
   //download card as an image with html2canvas
@@ -39,18 +39,17 @@ function App() {
 
     //create download link and trigger it
     const link = document.createElement("a");
-    link.download = `${name}-fan-card.png`; //file name
-    link.href = canvas.toDataURL(); //convert canvas to PNG
-    link.click(); //trigger click to download
+    link.download = `${name}-fan-card.png`; 
+    link.href = canvas.toDataURL(); 
+    link.click();
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
-  const [fanCards, setFanCards] = useState([]); // State to store all fan cards
-  const [teamSearchTerm, setTeamSearchTerm] = useState(""); // State for team search term
-  const [playerSearchTerm, setPlayerSearchTerm] = useState(""); // State for player search term
-  const [selectedTeamId, setSelectedTeamId] = useState(null); //Store the ID of the selected team to fetch its players
+  const [fanCards, setFanCards] = useState([]); 
+  const [teamSearchTerm, setTeamSearchTerm] = useState(""); 
+  const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
@@ -66,7 +65,7 @@ function App() {
       url = `https://v3.football.api-sports.io/teams?search=${teamSearchTerm}`;
     } else {
       // If no search term, load default popular teams
-      url = `https://v3.football.api-sports.io/teams?league=39&season=2023`;
+      url = `https://v3.football.api-sports.io/teams?league=39&season=2024`;
     }
     //Fetch teams
     fetch(url, {
@@ -90,7 +89,7 @@ function App() {
   useEffect(() => {
     if (selectedTeamId) {
       fetch(
-        `https://v3.football.api-sports.io/players?team=${selectedTeamId}&season=2023`,
+        `https://v3.football.api-sports.io/players?team=${selectedTeamId}&season=2024`,
         {
           method: "GET",
           headers: {
@@ -117,10 +116,6 @@ function App() {
 
   const handleTeamSearchChange = (e) => {
     setTeamSearchTerm(e.target.value); // Update the team search term
-  };
-
-  const handlePlayerSearchChange = (e) => {
-    setPlayerSearchTerm(e.target.value); // Update the player search term
   };
 
   const handleImageUpload = (e) => {
@@ -154,7 +149,7 @@ function App() {
     setNewCard({
       name: "",
       age: "",
-      gender: "",
+      location: "", // Replace gender with location
       favoriteTeam: "",
       favoriteTeamLogo: "",
       favoritePlayer: "",
@@ -185,6 +180,56 @@ function App() {
     setTooltip({ visible: false, x: 0, y: 0, image: "" });
   };
 
+  const handleSaveCard = () => {
+    // Validation: Check if required fields are filled
+    if (!newCard.name || !newCard.age || !newCard.location || !newCard.favoriteTeam || !newCard.favoritePlayer) {
+      alert("Please fill out all required fields before saving the card.");
+      return; // Stop execution if validation fails
+    }
+  
+    if (editingIndex !== null) {
+      // Update the existing card at the specified index
+      const updatedCards = [...fanCards];
+      updatedCards[editingIndex] = { ...newCard }; // Create a new object to avoid mutating the state
+      setFanCards(updatedCards);
+    } else {
+      // Add a new card if not editing
+      setFanCards([...fanCards, { ...newCard }]); // Create a new object for the new card
+    }
+  
+    // Reset state
+    setNewCard({
+      name: "",
+      age: "",
+      location: "",
+      favoriteTeam: "",
+      favoriteTeamLogo: "",
+      favoriteTeamId: "",
+      favoritePlayer: "",
+      favoritePlayerPhoto: "",
+      customImage: "",
+    });
+    setTeamSearchTerm(""); // Clear the team search query
+    setSelectedTeamId(null); // Clear the selected team ID
+    setPlayers([]); // Clear the players list
+    setIsModalOpen(false); // Close the modal
+    setEditingIndex(null); // Reset editing index
+  };
+
+  const handleEditCard = (index) => {
+    const cardToEdit = fanCards[index];
+    setNewCard(cardToEdit);
+    setEditingIndex(index);
+    setIsModalOpen(true);
+    setTeamSearchTerm(cardToEdit.favoriteTeam);
+    setSelectedTeamId(cardToEdit.favoriteTeamId); // Set team ID to fetch players
+  };
+
+  const handleDeleteCard = (index) => {
+    const updatedCards = fanCards.filter((_, i) => i !== index);
+    setFanCards(updatedCards);
+  };
+
   return (
     <>
       <header>Soccer Fan Cards</header>
@@ -202,7 +247,7 @@ function App() {
             />
             <h1>{card.name}</h1>
             <p>Age: {card.age}</p>
-            <p>Gender: {card.gender}</p>
+            <p>Location: {card.location}</p>
             <p style={{ textAlign: "center" }}>
               Favorite Team: {card.favoriteTeam}
               {card.favoriteTeamLogo && (
@@ -237,14 +282,17 @@ function App() {
                 }}
               />
             )}
-            {/*Download button icon*/}
-            <button
-              className="no-print download-icon"
-              style={{ marginTop: "10px" }}
-              onClick={() => downloadCard(cardRefs.current[index], card.name)}
-            >
-              <FaDownload size={20} />
-            </button>
+            <div className="no-print" style={{ marginTop: "10px" }}>
+              <button onClick={() => downloadCard(cardRefs.current[index], card.name)}>
+                <FaDownload size={20} />
+              </button>
+              <button onClick={() => handleEditCard(index)} style={{ marginLeft: "8px" }}>
+                <FaEdit size={20} />
+              </button>
+              <button onClick={() => handleDeleteCard(index)} style={{ marginLeft: "8px" }}>
+                <FaTrash size={20} />
+              </button>
+            </div>
           </div>
         ))}
 
@@ -278,9 +326,9 @@ function App() {
             />
             <input
               type="text"
-              name="gender"
-              placeholder="Gender"
-              value={newCard.gender}
+              name="location" // Change name to location
+              placeholder="City"
+              value={newCard.location} // Update value to location
               onChange={handleInputChange}
             />
             <input
@@ -301,7 +349,8 @@ function App() {
                   setNewCard({
                     ...newCard,
                     favoriteTeam: selectedTeam.team.name,
-                    favoriteTeamLogo: selectedTeam.team.logo, // Add logo to the card
+                    favoriteTeamLogo: selectedTeam.team.logo,
+                    favoriteTeamId: selectedTeam.team.id, // Store team ID
                   });
                   setSelectedTeamId(selectedTeam.team.id);
                 }
@@ -320,13 +369,6 @@ function App() {
                 </option>
               ))}
             </select>
-
-            <input
-              type="text"
-              placeholder="Search Players"
-              value={playerSearchTerm}
-              onChange={handlePlayerSearchChange}
-            />
             <select
               name="favoritePlayer"
               value={newCard.favoritePlayer}
@@ -363,7 +405,9 @@ function App() {
             <input type="file" accept="image/*" onChange={handleImageUpload} />
 
             <div className="button-group">
-              <button onClick={handleAddCard}>Add Card</button>
+              <button onClick={handleSaveCard}>
+                {editingIndex !== null ? "Save Changes" : "Add Card"}
+              </button>
               <button
                 className="close-button"
                 onClick={() => setIsModalOpen(false)}
