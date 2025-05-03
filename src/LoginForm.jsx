@@ -14,7 +14,7 @@ export default function LoginForm() {
     e.preventDefault();
 
     const res = await fetch(
-      `https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user?username=${credentials.username}&password=${credentials.password}`
+      `https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user?username=${credentials.username}&password=${credentials.password}` //replace key
     );
     const users = await res.json();
     const user = users.find((u) => u.password === credentials.password);

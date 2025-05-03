@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
 import "./login.css";
 
 export default function SignupForm() {
@@ -16,7 +15,7 @@ export default function SignupForm() {
   const handleSignup = async (e) => {
     e.preventDefault();
     const res = await fetch(
-      "https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user",
+      "https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user", //replace key
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
