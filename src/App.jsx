@@ -309,7 +309,7 @@ function App() {
       {isModalOpen && (
         <div className="modal">
           <div className="modal-content">
-            <h1>Add New Card</h1>
+            <h1>{editingIndex !== null ? "Edit Card" : "Add New Card"}</h1>
             <input
               type="text"
               name="name"
@@ -410,7 +410,24 @@ function App() {
               </button>
               <button
                 className="close-button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false); // Close the modal
+                  setEditingIndex(null); // Reset the editing index
+                  setNewCard({
+                    name: "",
+                    age: "",
+                    location: "",
+                    favoriteTeam: "",
+                    favoriteTeamLogo: "",
+                    favoriteTeamId: "",
+                    favoritePlayer: "",
+                    favoritePlayerPhoto: "",
+                    customImage: "",
+                  }); // Reset the newCard state
+                  setTeamSearchTerm(""); // Clear the team search query
+                  setSelectedTeamId(null); // Clear the selected team ID
+                  setPlayers([]); // Clear the players list
+                }}
               >
                 Close
               </button>
