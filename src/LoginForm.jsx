@@ -12,19 +12,28 @@ export default function LoginForm() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    try {
+      const res = await fetch(
+        `https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user?username=${credentials.username}&password=${credentials.password}`
+      );
+      const users = await res.json();
 
-    const res = await fetch(
-      `https://6815a40d32debfe95dbc066e.mockapi.io/api/soccer/user?username=${credentials.username}&password=${credentials.password}` //replace key
-    );
-    const users = await res.json();
-    const user = users.find((u) => u.password === credentials.password);
+      const user = users.find(
+        (u) =>
+          u.username === credentials.username &&
+          u.password === credentials.password
+      );
 
-    if (user) {
-      alert("Login successful!");
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      navigate("/fan-cards");
-    } else {
-      alert("Invalid username or password");
+      if (user) {
+        alert("Login successful!");
+        localStorage.setItem("loggedInUser", JSON.stringify(user));
+        navigate("/fan-cards");
+      } else {
+        alert("Invalid username or password.");
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      alert("Account does not exist");
     }
   };
 
