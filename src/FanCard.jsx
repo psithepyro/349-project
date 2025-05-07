@@ -151,23 +151,6 @@ function FanCard() {
     }
   };
 
-  const handleAddCard = () => {
-    setFanCards([...fanCards, newCard]); // Add the new card to the fanCards array
-    setNewCard({
-      name: "",
-      age: "",
-      location: "", // Replace gender with location
-      favoriteTeam: "",
-      favoriteTeamLogo: "",
-      favoritePlayer: "",
-      favoritePlayerPhoto: "",
-      customImage: "", // Reset custom image
-    });
-    setTeamSearchTerm(""); // Reset the team search term
-    setSelectedTeamId(null);
-    setPlayers([]);
-    setIsModalOpen(false); // Close the modal
-  };
 
   const handleTooltip = (e, type) => {
     const option = e.target.options[e.target.selectedIndex];
@@ -239,8 +222,11 @@ function FanCard() {
   };
 
   const handleDeleteCard = (index) => {
-    const updatedCards = fanCards.filter((_, i) => i !== index);
-    setFanCards(updatedCards);
+    const confirmDelete = window.confirm("Are you sure you want to delete this card?");
+    if (confirmDelete) {
+      const updatedCards = fanCards.filter((_, i) => i !== index);
+      setFanCards(updatedCards);
+    }
   };
 
   //pre fills info from signup into
@@ -348,10 +334,7 @@ function FanCard() {
               >
                 <FaEdit size={20} />
               </button>
-              <button
-                onClick={() => handleDeleteCard(index)}
-                style={{ marginLeft: "8px" }}
-              >
+              <button onClick={() => handleDeleteCard(index)} style={{ marginLeft: "8px" }}>
                 <FaTrash size={20} />
               </button>
             </div>
